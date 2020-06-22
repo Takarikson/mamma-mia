@@ -192,22 +192,26 @@
               image.classList.remove(classNames.menuProduct.imageVisible);
             }
           }
-        }
-      } /* END LOOP: for each optionId in param.options */
-      /* END LOOP: for each paramId in thisProduct.data.params */
+        }/* END LOOP: for each optionId in param.options */
+      }/* END LOOP: for each paramId in thisProduct.data.params */
+      /* multiply price by amount */
+      price *= thisProduct.amountWidget.value;
       /* set the contents of thisProduct.priceElem to be the value of variable price */
       thisProduct.priceElem.innerHTML = price;
     }
     initAmountWidget() {
       const thisProduct = this;
-
       thisProduct.amountWidget = new AmountWidget(thisProduct.amountWidgetElem);
+      thisProduct.amountWidgetElem.addEventListener('updated', function () {
+        thisProduct.processOrder();
+      });
     }
   }
   class AmountWidget {
     constructor(element) {
       const thisWidget = this;
       thisWidget.getElements(element);
+      thisWidget.value = settings.amountWidget.defaultValue;
       thisWidget.setValue(thisWidget.input.value);
       thisWidget.initActions();
 
@@ -224,9 +228,13 @@
     setValue(value) {
       const thisWidget = this;
       const newValue = parseInt(value);
-      /* TODO: Add validation */
-      thisWidget.value = newValue;
-      thisWidget.announce();
+      /* Add validation */
+      if (newValue != thisWidget.value && newValue >= settings.amountWidget.defaultMin && newValue <= settings.amountWidget.defaultMax) {
+
+        thisWidget.value = newValue;
+        thisWidget.announce();
+      }
+
       thisWidget.input.value = thisWidget.value; // CHECK THIS
     }
     initActions() {
@@ -282,5 +290,4 @@
   };
   /*DEKLARACJA APP*/
   app.init();
-  app.initData();
 }
