@@ -53,15 +53,153 @@
   };
 
   const app = {
-    init: function(){
+    initMenu: function () {
+      const thisApp = this;
+
+      console.log('thisApp.data:', thisApp.data);
+
+      /*Tworzenie instancji dla każdego produktu(w pętli) po obiekcie thisApp.data.products*/
+      for (let productData in thisApp.data.products) {
+        new Product(productData, thisApp.data.products[productData]);
+      }
+      // const testProduct = new Product();
+      // /*uruchomienie w metodzie app.initMenu*/
+      // console.log('testProduct:', testProduct);
+
+    },
+    /*Instancja dla każdego produktu*/
+    initData: function () {
+      const thisApp = this;
+
+      thisApp.data = dataSource;
+    },
+    init: function () {
       const thisApp = this;
       console.log('*** App starting ***');
       console.log('thisApp:', thisApp);
       console.log('classNames:', classNames);
       console.log('settings:', settings);
       console.log('templates:', templates);
+      /*dodawanie delkaracji*/
+      thisApp.initData();
+      /*dodawanie delkaracji przed app init*/
+      thisApp.initMenu();
     },
   };
+  class Product {
+    constructor(id, data) {
+      const thisProduct = this;
+      /*tworzenie in i obiektu data w instancji Product*/
+      thisProduct.id = id;
+      thisProduct.data = data;
+      /*Renderowanie*/
+      thisProduct.renderInMenu();
+      /*DOM ELEMENTS*/
+      thisProduct.getElements();
+      /*Accordion*/
+      thisProduct.initAccordion();
+      /*Initialize Forms*/
+      thisProduct.initOrderForm();
+      // /*Initialize Orders*/
+      thisProduct.processOrder();
 
+
+
+      /*Wyświetlanie przez konstruktor klasy*/
+      // console.log('new Product:', thisProduct);
+    }
+    renderInMenu() {
+      const thisProduct = this;
+      /* generate HTML based on template - wygenerować kod HTML pojedynczego produktu (za pomocą handlebarsa templates ktory bierze wartosci z obiektu templateOf )*/
+      const generatedHTML = templates.menuProduct(thisProduct.data);
+      /* create element using utils.createElementFromDOM - stworzyć element DOM na podstawie tego kodu produktu (pobierane z utils z functions.js) */
+      thisProduct.element = utils.createDOMFromHTML(generatedHTML);
+      /* find menu container - znaleźć na stronie kontener menu,*/
+      const menuContainer = document.querySelector(select.containerOf.menu);
+      /* add element to menu - wstawić stworzony element DOM do znalezionego kontenera menu (za pomocą metody appendChild)*/
+      menuContainer.appendChild(thisProduct.element);
+    }
+    getElements() {
+      const thisProduct = this;
+
+      thisProduct.accordionTrigger = thisProduct.element.querySelector(select.menuProduct.clickable);
+      thisProduct.form = thisProduct.element.querySelector(select.menuProduct.form);
+      thisProduct.formInputs = thisProduct.form.querySelectorAll(select.all.formInputs);
+      thisProduct.cartButton = thisProduct.element.querySelector(select.menuProduct.cartButton);
+      thisProduct.priceElem = thisProduct.element.querySelector(select.menuProduct.priceElem);
+    }
+    initAccordion() {
+      const thisProduct = this;
+
+      /* find the clickable trigger (the element that should react to clicking) */
+      // const clickableTrigger = thisProduct.element.querySelector(select.menuProduct.clickable);
+      thisProduct.accordionTrigger = thisProduct.element.querySelector(select.menuProduct.clickable);
+      /* START: click event listener to trigger */
+      thisProduct.accordionTrigger.addEventListener('click', function (event) {
+        /* prevent default action for event */
+        event.preventDefault();
+        /* toggle active class on element of thisProduct */
+        thisProduct.element.classList.toggle('active');
+        /* find all active products */
+        const activeProducts = document.querySelectorAll('article.active');
+        /* START LOOP: for each active product */
+        for (let activeProduct of activeProducts) {
+          /* START: if the active product isn't the element of thisProduct */
+          if (activeProduct != thisProduct.element) {
+            /* remove class active for the active product */
+            activeProduct.classList.remove('active');
+            /* END: if the active product isn't the element of thisProduct */
+          }
+          /* END LOOP: for each active product */
+        }
+        /* END: click event listener to trigger */
+      });
+    }
+    initOrderForm() {
+      const thisProduct = this;
+      thisProduct.form.addEventListener('submit', function (event) {
+        event.preventDefault();
+        thisProduct.processOrder();
+      });
+
+      for (let input of thisProduct.formInputs) {
+        input.addEventListener('change', function () {
+          thisProduct.processOrder();
+        });
+      }
+
+      thisProduct.cartButton.addEventListener('click', function (event) {
+        event.preventDefault();
+        thisProduct.processOrder();
+      });
+    }
+    processOrder() {
+      const thisProduct = this;
+      /* read all data from the form (using utils.serializeFormToObject) and save it to const formData */
+      const formData = utils.serializeFormToObject(thisProduct.form);
+      console.log('formData', formData);
+      /* set variable price to equal thisProduct.data.price */
+      let price = thisProduct.data.price;
+      console.log('price: ', price);
+      for (let paramId in thisProduct.data.params) {// START LOOP: for each paramId in thisProduct.data.params
+        const param = thisProduct.data.params[paramId];// save the element in thisProduct.data.params with keyparamId as const param
+        for (let optionID in param.options) {// START LOOP: for each optionID  in param.options
+          const option = param.options[optionID];// save the element in param.options with key optionId as const option
+          const optionSelected = formData.hasOwnProperty(paramId) && formData[paramId].indexOf(optionID) > -1;
+          if (optionSelected && !option.default) {// START IF: if option is selected and option is not default
+            price += option.price;// add price of option to variable price
+          } else if (!optionSelected && !option.default) {// END IF: if option is selected and option is not default // START ELSE IF: if option is not selected and option is default
+            price -= option.price;// deduct price of option from price
+            console.log('PRICE:', price);
+          }
+        }// END LOOP: for each optionId in param.options
+      }// END LOOP: for each paramId in thisProduct.data.params
+      console.log('THISPRICE:', price);
+      thisProduct.priceElem.innerHTML = thisProduct.price;// set content of thisProduct.priceElem to be the value of variable price
+      thisProduct.priceElem.innerHTML = price;
+    }
+  }
+  /*DEKLARACJA APP*/
   app.init();
+  app.initData();
 }
