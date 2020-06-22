@@ -51,41 +51,6 @@
   const templates = {
     menuProduct: Handlebars.compile(document.querySelector(select.templateOf.menuProduct).innerHTML),
   };
-
-  const app = {
-    initMenu: function () {
-      const thisApp = this;
-
-      console.log('thisApp.data:', thisApp.data);
-
-      /*Tworzenie instancji dla każdego produktu(w pętli) po obiekcie thisApp.data.products*/
-      for (let productData in thisApp.data.products) {
-        new Product(productData, thisApp.data.products[productData]);
-      }
-      // const testProduct = new Product();
-      // /*uruchomienie w metodzie app.initMenu*/
-      // console.log('testProduct:', testProduct);
-
-    },
-    /*Instancja dla każdego produktu*/
-    initData: function () {
-      const thisApp = this;
-
-      thisApp.data = dataSource;
-    },
-    init: function () {
-      const thisApp = this;
-      console.log('*** App starting ***');
-      console.log('thisApp:', thisApp);
-      console.log('classNames:', classNames);
-      console.log('settings:', settings);
-      console.log('templates:', templates);
-      /*dodawanie delkaracji*/
-      thisApp.initData();
-      /*dodawanie delkaracji przed app init*/
-      thisApp.initMenu();
-    },
-  };
   class Product {
     constructor(id, data) {
       const thisProduct = this;
@@ -100,6 +65,8 @@
       thisProduct.initAccordion();
       /*Initialize Forms*/
       thisProduct.initOrderForm();
+      /*Przed processOrder*/
+      thisProduct.initAmountWidget();
       // /*Initialize Orders*/
       thisProduct.processOrder();
 
@@ -128,6 +95,7 @@
       thisProduct.cartButton = thisProduct.element.querySelector(select.menuProduct.cartButton);
       thisProduct.priceElem = thisProduct.element.querySelector(select.menuProduct.priceElem);
       thisProduct.imageWrapper = thisProduct.element.querySelector(select.menuProduct.imageWrapper);
+      thisProduct.amountWidgetElem = thisProduct.element.querySelector(select.menuProduct.amountWidget);
     }
     initAccordion() {
       const thisProduct = this;
@@ -176,10 +144,10 @@
     }
     processOrder() {
       const thisProduct = this;
-      console.log('processOrder');
+      // console.log('processOrder');
       /* read all data from the form (using utils.serializeFormToObject) and save it to const formData */
       const formData = utils.serializeFormToObject(thisProduct.form);
-      console.log('formData', formData);
+      // console.log('formData', formData);
 
       thisProduct.params = {};
 
@@ -230,7 +198,70 @@
       /* set the contents of thisProduct.priceElem to be the value of variable price */
       thisProduct.priceElem.innerHTML = price;
     }
+    initAmountWidget() {
+      const thisProduct = this;
+
+      thisProduct.amountWidget = new AmountWidget(thisProduct.amountWidgetElem);
+    }
   }
+  class AmountWidget {
+    constructor(element) {
+      const thisWidget = this;
+      thisWidget.getElements(element);
+      thisWidget.setVaule(thisWidget.input.value);
+      console.log('AmountWidget:', thisWidget);
+      console.log('constructor elements:', element);
+    }
+    getElements(element) {
+      const thisWidget = this;
+      thisWidget.element = element;
+      thisWidget.input = thisWidget.element.querySelector(select.widgets.amount.input);
+      thisWidget.linkDecrease = thisWidget.element.querySelector(select.widgets.amount.linkDecrease);
+      thisWidget.linkIncrease = thisWidget.element.querySelector(select.widgets.amount.linkIncrease);
+    }
+    setVaule() {
+      const thisWidget = this;
+      const newValue = parseInt(value);
+      /* TODO: Add validation */
+      thisWidget.value = newValue;
+      thisWidget.input.value = thisWidget.value;
+    }
+  }
+  const app = {
+    initMenu: function () {
+      const thisApp = this;
+
+      // console.log('thisApp.data:', thisApp.data);
+
+      /*Tworzenie instancji dla każdego produktu(w pętli) po obiekcie thisApp.data.products*/
+      for (let productData in thisApp.data.products) {
+        new Product(productData, thisApp.data.products[productData]);
+      }
+      // const testProduct = new Product();
+      // /*uruchomienie w metodzie app.initMenu*/
+      // console.log('testProduct:', testProduct);
+    },
+    /*Instancja dla każdego produktu*/
+    initData: function () {
+      const thisApp = this;
+
+      thisApp.data = dataSource;
+    },
+    init: function () {
+      const thisApp = this;
+      // console.log('*** App starting ***');
+      // console.log('thisApp:', thisApp);
+      // console.log('classNames:', classNames);
+      // console.log('settings:', settings);
+      // console.log('templates:', templates);
+      /*dodawanie delkaracji*/
+      thisApp.initData();
+      /*dodawanie delkaracji przed app init*/
+      thisApp.initMenu();
+    },
+  };
+
+
   /*DEKLARACJA APP*/
   app.init();
   app.initData();
