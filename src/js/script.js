@@ -249,8 +249,8 @@
       thisWidget.setValue(thisWidget.input.value);
       thisWidget.initActions();
 
-      console.log('AmountWidget:', thisWidget);
-      console.log('constructor arguments:', element);
+      // console.log('AmountWidget:', thisWidget);
+      // console.log('constructor arguments:', element);
     }
     getElements(element) {
       const thisWidget = this;
@@ -291,17 +291,42 @@
       thisWidget.element.dispatchEvent(event);
     }
   }
+  class Cart {
+    constructor(element) {
+      const thisCart = this;
+
+      thisCart.products = [];
+
+      thisCart.getElements(element);
+      thisCart.initActions();
+      console.log('new Cart', thisCart);
+    }
+
+    getElements(element) {
+      const thisCart = this;
+
+      thisCart.dom = {};
+      thisCart.dom.wrapper = element;
+      thisCart.dom.toggleTrigger = thisCart.dom.wrapper.querySelector(select.cart.toggleTrigger); // doczytac toogleTrigger
+    }
+
+    initActions() {
+      const thisCart = this;
+
+      thisCart.dom.toggleTrigger.addEventListener('click', function () {
+        thisCart.dom.wrapper.classList.toggle(classNames.cart.wrapperActive);
+      });
+
+    }
+  }
   const app = {
     initMenu: function () {
       const thisApp = this;
-      // console.log('thisApp.data:', thisApp.data);
+
       /*Tworzenie instancji dla każdego produktu(w pętli) po obiekcie thisApp.data.products*/
       for (let productData in thisApp.data.products) {
         new Product(productData, thisApp.data.products[productData]);
       }
-      // const testProduct = new Product();
-      // /*uruchomienie w metodzie app.initMenu*/
-      // console.log('testProduct:', testProduct);
     },
     /*Instancja dla każdego produktu*/
     initData: function () {
@@ -314,13 +339,19 @@
       // console.log('*** App starting ***');
       // console.log('thisApp:', thisApp);
       // console.log('classNames:', classNames);
-      console.log('settings:', settings);
+      // console.log('settings:', settings);
       // console.log('templates:', templates);
       /*dodawanie delkaracji*/
       thisApp.initData();
-      /*dodawanie delkaracji przed app init*/
       thisApp.initMenu();
+      thisApp.initCart();
     },
+    initCart: function () {
+      const thisApp = this;
+
+      const cartElem = document.querySelector(select.containerOf.cart);
+      thisApp.cart = new Cart(cartElem);
+    }
   };
   /*DEKLARACJA APP*/
   app.init();
